@@ -1,32 +1,68 @@
 #!/bin/bash
-# Builds a universal (Apple Silicon + Intel) release and packages it as dist/ArrowEch-<version>.dmg
+# Builds a universal (Apple Silicon + Intel) release and packages it as dist/ArrowEch-<version>.dmg,
+# containing a double-click installer (Install ArrowEch.pkg).
+#
+# SKIP_BUILD=1 ARTEFACTS=build/ArrowEch_artefacts/Release ./scripts/make-dmg.sh
+#   packages an existing build instead (handy for testing the installer quickly).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
 VERSION="$(sed -n 's/^project(ArrowEch VERSION \([0-9.]*\)).*/\1/p' CMakeLists.txt)"
 BUILD="$ROOT/build-release"
-ARTEFACTS="$BUILD/ArrowEch_artefacts/Release"
-STAGE="$BUILD/dmg-stage"
+ARTEFACTS="${ARTEFACTS:-$BUILD/ArrowEch_artefacts/Release}"
+WORK="$BUILD/package"
 DMG="$ROOT/dist/ArrowEch-$VERSION.dmg"
 
-echo "==> Building ArrowEch $VERSION (universal)"
-cmake -B "$BUILD" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DARROWECH_COPY_PLUGINS=OFF
-cmake --build "$BUILD" --config Release --target ArrowEch_VST3 ArrowEch_AU ArrowEch_Standalone -j"$(sysctl -n hw.ncpu)"
+if [[ "${SKIP_BUILD:-0}" != "1" ]]; then
+    echo "==> Building ArrowEch $VERSION (universal)"
+    cmake -B "$BUILD" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DARROWECH_COPY_PLUGINS=OFF
+    cmake --build "$BUILD" --config Release --target ArrowEch_VST3 ArrowEch_AU ArrowEch_Standalone -j"$(sysctl -n hw.ncpu)"
+fi
 
-echo "==> Staging"
-rm -rf "$STAGE" && mkdir -p "$STAGE"
-cp -R "$ARTEFACTS/VST3/ArrowEch.vst3" "$STAGE/"
-cp -R "$ARTEFACTS/AU/ArrowEch.component" "$STAGE/"
-cp -R "$ARTEFACTS/Standalone/ArrowEch.app" "$STAGE/"
-cp "$ROOT/packaging/Install ArrowEch.command" "$STAGE/"
-cp "$ROOT/packaging/READ ME FIRST.txt" "$STAGE/"
-chmod +x "$STAGE/Install ArrowEch.command"
+rm -rf "$WORK" && mkdir -p "$WORK"
 
-# Ad-hoc sign so Apple Silicon hosts will load the binaries.
-for bundle in "$STAGE/ArrowEch.vst3" "$STAGE/ArrowEch.component" "$STAGE/ArrowEch.app"; do
+echo "==> Signing (ad-hoc)"
+for bundle in "$ARTEFACTS/VST3/ArrowEch.vst3" "$ARTEFACTS/AU/ArrowEch.component" "$ARTEFACTS/Standalone/ArrowEch.app"; do
     codesign --force --deep --sign - "$bundle"
 done
+
+echo "==> Building installer packages"
+# One component package per format: <name> <bundle> <install location>
+make_component () {
+    local name="$1" bundle="$2" location="$3"
+    local root="$WORK/roots/$name"
+    mkdir -p "$root"
+    cp -R "$bundle" "$root/"
+
+    pkgbuild --analyze --root "$root" "$WORK/$name.plist" >/dev/null
+    plutil -replace 0.BundleIsRelocatable -bool NO "$WORK/$name.plist"
+
+    local scripts=()
+    [[ "$name" == "au" ]] && scripts=(--scripts "$ROOT/packaging/scripts")
+
+    pkgbuild --root "$root" \
+             --component-plist "$WORK/$name.plist" \
+             --install-location "$location" \
+             --identifier "com.arrow.arrowech.$name" \
+             --version "$VERSION" \
+             ${scripts[@]+"${scripts[@]}"} \
+             "$WORK/pkgs/ArrowEch-$name.pkg" >/dev/null
+}
+mkdir -p "$WORK/pkgs"
+make_component vst3       "$ARTEFACTS/VST3/ArrowEch.vst3"        "/Library/Audio/Plug-Ins/VST3"
+make_component au         "$ARTEFACTS/AU/ArrowEch.component"     "/Library/Audio/Plug-Ins/Components"
+make_component standalone "$ARTEFACTS/Standalone/ArrowEch.app"   "/Applications"
+
+sed "s/@VERSION@/$VERSION/g" "$ROOT/packaging/distribution.xml" > "$WORK/distribution.xml"
+
+STAGE="$WORK/dmg"
+mkdir -p "$STAGE"
+productbuild --distribution "$WORK/distribution.xml" \
+             --resources "$ROOT/packaging/resources" \
+             --package-path "$WORK/pkgs" \
+             "$STAGE/Install ArrowEch.pkg" >/dev/null
+cp "$ROOT/packaging/READ ME FIRST.txt" "$STAGE/"
 
 echo "==> Creating DMG"
 mkdir -p "$ROOT/dist"

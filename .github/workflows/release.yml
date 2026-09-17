@@ -34,5 +34,5 @@ jobs:
             --title "ArrowEch ${VERSION} (build ${{ github.run_number }})" \
             --notes "Automatic build of $(git rev-parse --short HEAD): $(git log -1 --pretty=%s)
 
-          Download **ArrowEch.dmg**, open it, right-click **Install ArrowEch.command** > Open, then rescan plug-ins in your DAW." \
+          Download **ArrowEch.dmg**, open it and double-click **Install ArrowEch.pkg** (if macOS blocks it: right-click > Open). Then rescan plug-ins in your DAW." \
             --latest

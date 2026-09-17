@@ -7,7 +7,15 @@ A cartoon blob explains every control (badly) and judges your settings.
 
 Get **ArrowEch.dmg** from the [latest release](../../releases/latest). Every push to `main` builds a fresh DMG automatically.
 
-Open the DMG, right-click **Install ArrowEch.command**, choose **Open**, then rescan plug-ins in your DAW.
+Open the DMG and double-click **Install ArrowEch.pkg**. The installer puts:
+
+- VST3 in `/Library/Audio/Plug-Ins/VST3`
+- AU in `/Library/Audio/Plug-Ins/Components`
+- the standalone app in `/Applications`
+
+Click **Customize** to choose which ones. Then rescan plug-ins in your DAW.
+
+If macOS says it can't check the installer for malicious software, right-click it and choose **Open**, or go to System Settings > Privacy & Security > **Open Anyway**. This happens because the installer isn't signed with an Apple Developer ID.
 
 ## What's in the rack
 
