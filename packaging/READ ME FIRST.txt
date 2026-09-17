@@ -1,0 +1,18 @@
+ARROWECH — says it again. and again.
+
+INSTALL (easy way)
+  1. Right-click "Install ArrowEch.command" and choose Open.
+     (macOS asks because it came from the internet. Click Open again.)
+  2. Rescan plug-ins in your DAW. Find "ArrowEch" by "Arrow".
+
+INSTALL (manual way)
+  Drag ArrowEch.vst3      into  ~/Library/Audio/Plug-Ins/VST3
+  Drag ArrowEch.component into  ~/Library/Audio/Plug-Ins/Components
+  Then in Terminal:
+    xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/ArrowEch.vst3 ~/Library/Audio/Plug-Ins/Components/ArrowEch.component
+
+STANDALONE
+  ArrowEch.app runs without a DAW (drag it to Applications if you like).
+  First launch: right-click > Open.
+
+Works on Apple Silicon and Intel Macs, macOS 11+.
