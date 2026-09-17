@@ -22,6 +22,8 @@ juce_add_plugin(ArrowEch
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
+    MICROPHONE_PERMISSION_ENABLED TRUE
+    MICROPHONE_PERMISSION_TEXT "ArrowEch needs your microphone so the standalone app can echo live sound."
     COPY_PLUGIN_AFTER_BUILD ${ARROWECH_COPY_PLUGINS})
 
 target_sources(ArrowEch PRIVATE

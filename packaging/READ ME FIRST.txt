@@ -2,9 +2,6 @@ ARROWECH — says it again. and again.
 
 INSTALL
   1. Double-click "Install ArrowEch.pkg".
-     If macOS says it can't check it for malicious software:
-     right-click the .pkg > Open > Open.
-     (or System Settings > Privacy & Security > "Open Anyway")
   2. Follow the installer. Click Customize to pick VST3 / AU / Standalone.
   3. Rescan plug-ins in your DAW. Find "ArrowEch" by "Arrow".
 

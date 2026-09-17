@@ -15,7 +15,7 @@ Open the DMG and double-click **Install ArrowEch.pkg**. The installer puts:
 
 Click **Customize** to choose which ones. Then rescan plug-ins in your DAW.
 
-If macOS says it can't check the installer for malicious software, right-click it and choose **Open**, or go to System Settings > Privacy & Security > **Open Anyway**. This happens because the installer isn't signed with an Apple Developer ID.
+Everything is signed with a Developer ID and notarized, so nothing is blocked by Gatekeeper.
 
 ## What's in the rack
 
@@ -45,6 +45,35 @@ cmake --build build --config Release        # builds and installs to ~/Library/A
 ```
 
 CMake fetches JUCE 8 automatically.
+
+### Signing and notarizing the release
+
+Releases are signed with a Developer ID and notarized, so macOS opens them without a warning.
+Without these variables `make-dmg.sh` still produces a working but ad-hoc signed build that
+users must right-click > Open. Store the notary credentials once (an App Store Connect API
+key avoids app-specific passwords):
+
+```bash
+xcrun notarytool store-credentials arrowech-notary \
+  --key ~/Downloads/AuthKey_KEYID.p8 --key-id KEYID --issuer ISSUER-UUID
+```
+
+Then build:
+
+```bash
+APP_SIGN_ID="Developer ID Application: Your Name (TEAMID)" \
+INSTALLER_SIGN_ID="Developer ID Installer: Your Name (TEAMID)" \
+NOTARY_PROFILE=arrowech-notary \
+./scripts/make-dmg.sh
+```
+
+The plug-ins, the standalone app, the .pkg and the DMG are all signed with the hardened
+runtime and a secure timestamp; Apple's notary service takes a few minutes per file, and the
+script waits and staples the tickets so everything validates offline. Check a build with
+`spctl -a -vvv -t install dist/ArrowEch-<version>.dmg` (expect `source=Notarized Developer ID`).
+
+The standalone app carries `packaging/standalone.entitlements` (microphone access) — the
+plug-ins don't need it, because the host owns the input.
 
 Tests:
 
