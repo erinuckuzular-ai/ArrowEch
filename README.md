@@ -7,7 +7,7 @@ A cartoon blob explains every control (badly) and judges your settings.
 
 ## Download
 
-Get **ArrowEch.dmg** from the [latest release](../../releases/latest). Every push to `main` builds a fresh DMG automatically.
+[**Download ArrowEch.dmg**](https://github.com/erinuckuzular-ai/ArrowEch/releases/latest/download/ArrowEch.dmg) (always the newest build), or browse [all releases](../../releases). Every push to `main` builds a fresh DMG automatically.
 
 Open the DMG and double-click **Install ArrowEch.pkg**. The installer puts:
 

@@ -74,8 +74,9 @@ jobs:
         run: |
           VERSION="$(sed -n 's/^project(ArrowEch VERSION \([0-9.]*\)).*/\1/p' CMakeLists.txt)"
           TAG="v${VERSION}-build${{ github.run_number }}"
+          # One asset with a fixed name, so releases/latest/download/ArrowEch.dmg always works.
           cp "dist/ArrowEch-${VERSION}.dmg" dist/ArrowEch.dmg
-          gh release create "$TAG" "dist/ArrowEch-${VERSION}.dmg" dist/ArrowEch.dmg \
+          gh release create "$TAG" dist/ArrowEch.dmg \
             --target "${{ github.sha }}" \
             --title "ArrowEch ${VERSION} (build ${{ github.run_number }})" \
             --notes "Automatic build of $(git rev-parse --short HEAD): $(git log -1 --pretty=%s)
