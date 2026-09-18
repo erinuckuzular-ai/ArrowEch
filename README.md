@@ -3,6 +3,8 @@
 A goofy, very functional multi-effect rack for macOS: VST3, AU and Standalone, Apple Silicon and Intel, macOS 11+.
 A cartoon blob explains every control (badly) and judges your settings.
 
+![ArrowEch: the Echo-er and the Tone Zoo page](docs/ui_zoo.png)
+
 ## Download
 
 Get **ArrowEch.dmg** from the [latest release](../../releases/latest). Every push to `main` builds a fresh DMG automatically.
@@ -35,6 +37,8 @@ The signal flows through 10 modules. Drag the chips at the top to reorder them.
 | **Squish** | Compressor with parallel mix and sidechain-style pump |
 
 There are also 31 factory presets (including a dub section), **ROLL DICE** to randomize everything, **OH NO** to clear all tails, and input, output and rack-mix controls.
+
+![The Glitch Garage page](docs/ui_garage.png)
 
 ## Build locally
 
@@ -71,6 +75,31 @@ The plug-ins, the standalone app, the .pkg and the DMG are all signed with the h
 runtime and a secure timestamp; Apple's notary service takes a few minutes per file, and the
 script waits and staples the tickets so everything validates offline. Check a build with
 `spctl -a -vvv -t install dist/ArrowEch-<version>.dmg` (expect `source=Notarized Developer ID`).
+
+### Signing in CI
+
+The release workflow signs and notarizes when these repository secrets are set
+(Settings > Secrets and variables > Actions):
+
+| Secret | What goes in it |
+|---|---|
+| `MACOS_CERT_P12` | Base64 of a .p12 holding both Developer ID certificates (`base64 -i certs.p12 \| pbcopy`) |
+| `MACOS_CERT_PASSWORD` | Password of that .p12 |
+| `APP_SIGN_ID` | `Developer ID Application: Your Name (TEAMID)` |
+| `INSTALLER_SIGN_ID` | `Developer ID Installer: Your Name (TEAMID)` |
+| `NOTARY_KEY` | Base64 of the App Store Connect API key (`AuthKey_KEYID.p8`) |
+| `NOTARY_KEY_ID` | The key's ID |
+| `NOTARY_ISSUER` | Issuer ID from App Store Connect > Users and Access > Integrations |
+
+Without `MACOS_CERT_P12` and `NOTARY_KEY` the workflow publishes an ad-hoc signed build.
+If they are set but another notary secret is empty, the run fails instead of shipping an
+un-notarized release.
+
+### Packaging art
+
+The DMG window, installer backgrounds and app icon come from `scripts/make-art.py`
+(needs Pillow). The outputs are committed, so re-run it only when changing the art;
+icon positions in `packaging/dmg-settings.py` must match it.
 
 The standalone app carries `packaging/standalone.entitlements` (microphone access) — the
 plug-ins don't need it, because the host owns the input.

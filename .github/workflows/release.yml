@@ -48,6 +48,12 @@ jobs:
           NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
           NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER }}
         run: |
+          for name in NOTARY_KEY_ID NOTARY_ISSUER; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::The $name secret is empty. Add it under Settings > Secrets and variables > Actions (see README)."
+              exit 1
+            fi
+          done
           echo "$NOTARY_KEY" | base64 --decode > "$RUNNER_TEMP/notary.p8"
           xcrun notarytool store-credentials arrowech-notary \
             --key "$RUNNER_TEMP/notary.p8" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER"

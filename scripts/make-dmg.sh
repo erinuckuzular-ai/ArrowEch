@@ -96,9 +96,17 @@ if [[ -n "${NOTARY_PROFILE:-}" && -n "${INSTALLER_SIGN_ID:-}" ]]; then
 fi
 
 echo "==> Creating DMG"
+# dmgbuild writes the window layout (background, icon positions) without scripting Finder,
+# so it works the same on a headless CI runner.
+if ! python3 -c "import dmgbuild" 2>/dev/null; then
+    [[ -x "$BUILD/venv/bin/python" ]] || python3 -m venv "$BUILD/venv"
+    "$BUILD/venv/bin/pip" install -q "dmgbuild==1.6.7"
+    PYTHON="$BUILD/venv/bin/python"
+fi
 mkdir -p "$ROOT/dist"
 rm -f "$DMG"
-hdiutil create -volname "ArrowEch $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+"${PYTHON:-python3}" -m dmgbuild -s "$ROOT/packaging/dmg-settings.py" \
+    -D stage="$STAGE" -D art="$ROOT/packaging/art" "ArrowEch $VERSION" "$DMG"
 
 if [[ -n "${APP_SIGN_ID:-}" ]]; then
     codesign --force --timestamp --sign "$APP_SIGN_ID" "$DMG"

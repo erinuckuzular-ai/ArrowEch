@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(JUCE)
 
 juce_add_plugin(ArrowEch
     COMPANY_NAME "Arrow"
+    ICON_BIG "${CMAKE_CURRENT_SOURCE_DIR}/packaging/art/icon.png"
     PLUGIN_MANUFACTURER_CODE Arrw
     PLUGIN_CODE ArEc
     FORMATS AU VST3 Standalone
